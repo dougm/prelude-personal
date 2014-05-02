@@ -30,6 +30,9 @@
 (disable-theme 'zenburn)
 (load-theme 'solarized-dark t)
 
+;; whitespace
+(setq whitespace-line-column 120)
+
 ;; keys
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
 
@@ -54,6 +57,10 @@
 (prelude-require-package 'magit-gerrit)
 (eval-after-load 'magit
   '(require 'magit-gerrit))
+
+;; projectile
+(setq projectile-use-git-grep t)
+(prelude-require-packages '(ack-and-a-half ag))
 
 ;; .dir-locals.el
 (setq enable-local-eval t)
