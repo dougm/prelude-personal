@@ -16,7 +16,6 @@
 
 ;; ido
 (prelude-require-package 'ido-vertical-mode)
-
 (ido-vertical-mode t)
 
 ;; mac
@@ -45,13 +44,19 @@
 ;; prog
 (add-hook 'prog-mode-hook 'linum-mode)
 
-;; install tools for go-mode
+;; go
 (eval-after-load 'go-mode
-  '(prelude-go-install-tools))
+  '(progn
+     (prelude-go-install-tools)
+     (setq go-test-verbose t)))
 
-;; flycheck - don't enable flycheck unless we modify the buffer
+;; flycheck
+(prelude-require-packages '(flycheck-cask flycheck-color-mode-line))
 (eval-after-load 'flycheck
-  '(delq 'mode-enabled flycheck-check-syntax-automatically))
+  '(progn
+     (delq 'mode-enabled flycheck-check-syntax-automatically)
+     (add-hook 'flycheck-mode-hook 'flycheck-cask-setup)
+     (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)))
 
 ;; git
 (prelude-require-package 'magit-gerrit)
@@ -61,6 +66,12 @@
 ;; projectile
 (setq projectile-use-git-grep t)
 (prelude-require-packages '(ack-and-a-half ag))
+
+;; vagrant
+(prelude-require-packages '(vagrant vagrant-tramp))
+(require 'vagrant)
+(eval-after-load 'tramp
+  '(vagrant-tramp-enable))
 
 ;; .dir-locals.el
 (setq enable-local-eval t)
