@@ -73,3 +73,7 @@
 ;; server
 (require 'server)
 (unless (server-running-p) (server-start))
+
+;; saveplace
+;; ignore tramp files and anything in .git
+(setq save-place-ignore-files-regexp "\\(?:^/[a-z]+:\\|/.git/\\)")
