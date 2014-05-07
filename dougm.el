@@ -41,9 +41,6 @@
 ;; disable scroll bars
 (scroll-bar-mode -1)
 
-;; prog
-(add-hook 'prog-mode-hook 'linum-mode)
-
 ;; go
 (eval-after-load 'go-mode
   '(progn
