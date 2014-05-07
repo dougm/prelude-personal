@@ -18,16 +18,15 @@
 (prelude-require-package 'ido-vertical-mode)
 (ido-vertical-mode t)
 
-;; mac
+;; mac/gui
 (when (memq window-system '(mac ns))
   (set-face-font 'default "Monaco-13")
   (setq mac-command-modifier 'meta)
-  (setq mac-option-modifier 'super))
-
-;; solarized
-(prelude-require-package 'solarized-theme)
-(disable-theme 'zenburn)
-(load-theme 'solarized-dark t)
+  (setq mac-option-modifier 'super)
+  (scroll-bar-mode -1)
+  (prelude-require-package 'solarized-theme)
+  (disable-theme 'zenburn)
+  (load-theme 'solarized-dark t))
 
 ;; whitespace
 (setq whitespace-line-column 120)
@@ -37,9 +36,6 @@
 
 ;; turn off the beep
 (setq visible-bell t)
-
-;; disable scroll bars
-(scroll-bar-mode -1)
 
 ;; go
 (eval-after-load 'go-mode
