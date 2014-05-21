@@ -20,6 +20,7 @@
 
 ;; mac/gui
 (when (memq window-system '(mac ns))
+  (setenv "VAGRANT_DEFAULT_PROVIDER" "vmware_fusion")
   (set-face-font 'default "Monaco-13")
   (setq mac-command-modifier 'meta)
   (setq mac-option-modifier 'super)
