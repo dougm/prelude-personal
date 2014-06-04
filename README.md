@@ -8,7 +8,3 @@ My personal settings for use with [Prelude](https://github.com/bbatsov/prelude)
 $ git clone https://github.com/bbatsov/prelude .emacs.d
 $ ln -s ~/prelude-personal/*.el ~/.emacs.d/personal/
 ```
-
-## See Also
-
-[Prelude Go](https://github.com/dougm/prelude-go)

@@ -4,6 +4,7 @@
 (require 'prelude-company)
 (require 'prelude-c)
 (require 'prelude-emacs-lisp)
+(require 'prelude-go)
 (require 'prelude-js)
 (require 'prelude-key-chord)
 (require 'prelude-lisp)
@@ -12,7 +13,6 @@
 (require 'prelude-python)
 (require 'prelude-ruby)
 (require 'prelude-shell)
-(require 'prelude-go) ;; in vendor/
 
 ;; ido
 (prelude-require-package 'ido-vertical-mode)
@@ -41,7 +41,7 @@
 ;; go
 (eval-after-load 'go-mode
   '(progn
-     (prelude-go-install-tools)
+     (go-projectile-install-tools)
      (setq go-test-verbose t)))
 
 ;; flycheck
