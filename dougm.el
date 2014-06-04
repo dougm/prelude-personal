@@ -78,3 +78,10 @@
 ;; saveplace
 ;; ignore tramp files and anything in .git
 (setq save-place-ignore-files-regexp "\\(?:^/[a-z]+:\\|/.git/\\)")
+
+;; term
+(add-hook 'term-mode-hook
+          (lambda ()
+            (define-key term-raw-map (kbd "C-'") 'term-line-mode)
+            (define-key term-mode-map (kbd "C-'") 'term-char-mode)
+            (define-key term-raw-map (kbd "C-y") 'term-paste)))
