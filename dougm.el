@@ -60,6 +60,7 @@
 ;; projectile
 (setq projectile-use-git-grep t)
 (prelude-require-packages '(ack-and-a-half ag))
+(setq projectile-sort-order 'recentf)
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
