@@ -57,6 +57,14 @@
 (eval-after-load 'magit
   '(require 'magit-gerrit))
 
+;; js
+(setq-default js-indent-level 2)
+
+;; sh
+(setq-default sh-tab-width 2
+              sh-basic-offset 2
+              sh-indentation 2)
+
 ;; projectile
 (setq projectile-use-git-grep t)
 (prelude-require-packages '(ack-and-a-half ag))
