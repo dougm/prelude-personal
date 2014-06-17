@@ -65,6 +65,9 @@
               sh-basic-offset 2
               sh-indentation 2)
 
+;; nix-mode
+(prelude-require-package 'nix-mode)
+
 ;; projectile
 (setq projectile-use-git-grep t)
 (prelude-require-packages '(ack-and-a-half ag))
