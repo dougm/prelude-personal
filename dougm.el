@@ -34,13 +34,31 @@
 
 ;; keys
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
+(global-set-key (kbd "M-c") 'recompile)
 
 ;; turn off the beep
 (setq visible-bell t)
 
+;; projectile
+(prelude-require-packages '(ag))
+(setq ag-highlight-search t)
+(setq grep-highlight-matches 'auto)
+(setq projectile-use-git-grep t)
+(setq projectile-sort-order 'recentf)
+(setq go-projectile-tools-path (expand-file-name "~/gotools"))
+(global-set-key (kbd "s-f") 'projectile-find-file)
+(global-set-key (kbd "s-g") 'projectile-grep)
+(global-set-key (kbd "s-s") 'projectile-ag)
+(add-hook 'prelude-mode-hook
+          (lambda ()
+            (let ((map prelude-mode-map))
+              (define-key map (kbd "s-g") 'projectile-grep))))
+(add-to-list 'clean-buffer-list-kill-regexps "^\\*ag search ")
+
 ;; go
 (eval-after-load 'go-mode
   '(progn
+     (add-to-list 'clean-buffer-list-kill-regexps "^\\*godoc ")
      (go-projectile-install-tools)
      (setq go-test-verbose t)))
 
@@ -53,9 +71,10 @@
      (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)))
 
 ;; git
-(prelude-require-package 'magit-gerrit)
+(prelude-require-packages '(magit-gerrit magit-gh-pulls))
 (eval-after-load 'magit
   '(require 'magit-gerrit))
+(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
 
 ;; js
 (setq-default js-indent-level 2)
@@ -67,11 +86,6 @@
 
 ;; nix-mode
 (prelude-require-package 'nix-mode)
-
-;; projectile
-(setq projectile-use-git-grep t)
-(prelude-require-packages '(ack-and-a-half ag))
-(setq projectile-sort-order 'recentf)
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
