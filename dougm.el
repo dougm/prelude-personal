@@ -1,6 +1,5 @@
 ;; load prelude modules
 (require 'prelude-ido)
-(require 'prelude-helm)
 (require 'prelude-company)
 (require 'prelude-c)
 (require 'prelude-emacs-lisp)
@@ -111,3 +110,6 @@
             (define-key term-raw-map (kbd "C-'") 'term-line-mode)
             (define-key term-mode-map (kbd "C-'") 'term-char-mode)
             (define-key term-raw-map (kbd "C-y") 'term-paste)))
+
+;; misc
+(add-to-list 'auto-mode-alist '("\\.vmx$" . conf-mode))
