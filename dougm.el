@@ -112,11 +112,14 @@
             (define-key term-raw-map (kbd "C-y") 'term-paste)))
 
 ;; bats
-(setenv "CI" "emacs") ;; make bats default to tap output format
-(add-to-list 'auto-mode-alist '("\\.bats\\'" . sh-mode))
-(add-to-list 'compilation-error-regexp-alist 'bats t)
-(add-to-list 'compilation-error-regexp-alist-alist
-             '(bats . ("file \\([^ \t\r\n(]+\\), line \\([0-9]+\\)" 1 2)) t)
+(prelude-require-package 'bats-mode)
+
+(add-hook 'bats-mode-hook
+          (lambda ()
+            (let ((map bats-mode-map))
+              (define-key map (kbd "C-c a") 'bats-run-all)
+              (define-key map (kbd "C-c m") 'bats-run-current-file)
+              (define-key map (kbd "C-c .") 'bats-run-current-test))))
 
 ;; misc
 (add-to-list 'auto-mode-alist '("\\.vmx$" . conf-mode))
