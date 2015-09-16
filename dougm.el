@@ -60,7 +60,7 @@
      ((string= project "govmomi")
       (progn
         (setq-local compilation-read-command nil)
-        (setq-local compile-command "go build -v -o ./govc/govc ./govc")
+        (setq-local projectile-project-compilation-cmd "go build -v -o ./govc/govc ./govc")
         (setq-local go-oracle-scope "github.com/vmware/govmomi/govc"))))))
 
 (defun dougm-projectile-switch-project-hook ()
