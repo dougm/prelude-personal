@@ -60,15 +60,15 @@
      ((string= project "govmomi")
       (progn
         (setq-local compilation-read-command nil)
-        (setq-local projectile-project-compilation-cmd "go build -v -o ./govc/govc ./govc")
+        (setq-local projectile-project-compilation-cmd "go install -v ./govc")
         (setq-local go-oracle-scope "github.com/vmware/govmomi/govc"))))))
 
 (defun dougm-projectile-switch-project-hook ()
   (when (file-exists-p (projectile-dirconfig-file))
-    (magit-fetch-all)
-    (dir-locals-set-directory-class (projectile-project-root) 'project-locals)))
+    (dir-locals-set-directory-class (projectile-project-root) 'project-locals)
+    (magit-fetch-all)))
 
-(add-hook 'projectile-switch-project-hook 'dougm-projectile-switch-project-hook)
+(add-hook 'projectile-after-switch-project-hook 'dougm-projectile-switch-project-hook)
 
 (dolist (re '("^\\*ag search " "^\\*godoc "))
   (add-to-list 'clean-buffer-list-kill-regexps re))
@@ -92,7 +92,9 @@
 ;; git
 (prelude-require-packages '(magit-gerrit magit-gh-pulls git-link))
 (eval-after-load 'magit
-  '(require 'magit-gerrit))
+  '(progn
+     (setq magit-revision-show-gravatars nil)
+     (require 'magit-gerrit)))
 
 ;; js/json
 (setq-default js-indent-level 2
@@ -119,9 +121,6 @@
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
-(require 'vagrant)
-(eval-after-load 'tramp
-  '(vagrant-tramp-enable))
 
 ;; .dir-locals.el
 (setq enable-local-eval t
@@ -163,3 +162,7 @@
                             powershell))
 
 (setq dired-listing-switches "-laX")
+
+;; I like clocks
+(display-time-mode 1)
+(setq display-time-default-load-average nil)
