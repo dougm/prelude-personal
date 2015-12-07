@@ -31,6 +31,12 @@
 (setq whitespace-line-column 120)
 
 ;; keys
+(defun backward-whitespace ()
+  (interactive)
+  (forward-whitespace -1))
+
+(global-set-key (kbd "M-<right>") 'forward-whitespace)
+(global-set-key (kbd "M-<left>") 'backward-whitespace)
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
 (global-set-key (kbd "M-c") 'recompile)
 
@@ -61,12 +67,16 @@
       (progn
         (setq-local compilation-read-command nil)
         (setq-local projectile-project-compilation-cmd "go install -v ./govc")
-        (setq-local go-oracle-scope "github.com/vmware/govmomi/govc"))))))
+        (setq-local go-oracle-scope "github.com/vmware/govmomi/govc")))
+     ((string-prefix-p "bonneville-" project)
+      (progn
+        (setq-default sh-basic-offset 4
+                      sh-indentation 4))))))
 
 (defun dougm-projectile-switch-project-hook ()
   (when (file-exists-p (projectile-dirconfig-file))
     (dir-locals-set-directory-class (projectile-project-root) 'project-locals)
-    (magit-fetch-all)))
+    (magit-fetch-all "--prune")))
 
 (add-hook 'projectile-after-switch-project-hook 'dougm-projectile-switch-project-hook)
 
@@ -102,8 +112,7 @@
               jsons-path-printer 'jsons-print-path-jq)
 
 ;; sh
-(setq-default sh-tab-width 2
-              sh-basic-offset 2
+(setq-default sh-basic-offset 2
               sh-indentation 2)
 
 ;; docker
@@ -133,7 +142,8 @@
 ;; saveplace/recentf
 ;; ignore tramp files and anything in .git
 (setq save-place-ignore-files-regexp "\\(?:^/[a-z]+:\\|/.git/\\)")
-(add-to-list 'recentf-exclude "/_vendor/")
+(dolist (e '("/_vendor/" "/var" "/usr/local/" "/sudo:" "/ssh:" "/vagrant:"))
+  (add-to-list 'recentf-exclude e))
 
 ;; term
 (add-hook 'term-mode-hook
@@ -162,6 +172,10 @@
                             powershell))
 
 (setq dired-listing-switches "-laX")
+
+(setq ping-program-options '("-c" "10"))
+
+(setq diff-switches "-u")
 
 ;; I like clocks
 (display-time-mode 1)
