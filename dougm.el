@@ -55,6 +55,7 @@
   (define-key map (kbd "s-f") 'projectile-find-file)
   (define-key map (kbd "s-s") 'projectile-ag))
 
+;; dir-locals based project config without the .dir-locals.el file
 (dir-locals-set-class-variables
  'project-locals
  '((nil . ((eval . (dougm-projectile-project-locals))))))
@@ -68,18 +69,23 @@
         (setq-local compilation-read-command nil)
         (setq-local projectile-project-compilation-cmd "go install -v ./govc")
         (setq-local go-oracle-scope "github.com/vmware/govmomi/govc")))
+     ((string= project "machine")
+      (progn
+        (setq-local compilation-read-command nil)
+        (setq-local projectile-project-compilation-cmd "make clean build")
+        (setq-local projectile-project-test-cmd "make GOLINT=$(which golint) test")
+        (setq-local go-oracle-scope "github.com/docker/machine/cmd")))
      ((string-prefix-p "bonneville-" project)
       (progn
         (setq-default sh-basic-offset 4
                       sh-indentation 4))))))
 
 (defun dougm-projectile-switch-project-hook ()
-  (when (file-exists-p (projectile-dirconfig-file))
-    (dir-locals-set-directory-class (projectile-project-root) 'project-locals)
-    (magit-fetch-all "--prune")))
+  (dir-locals-set-directory-class (projectile-project-root) 'project-locals))
 
-(add-hook 'projectile-after-switch-project-hook 'dougm-projectile-switch-project-hook)
+(add-hook 'projectile-before-switch-project-hook 'dougm-projectile-switch-project-hook)
 
+;; midnight.el
 (dolist (re '("^\\*ag search " "^\\*godoc "))
   (add-to-list 'clean-buffer-list-kill-regexps re))
 
