@@ -6,11 +6,7 @@
 (require 'prelude-go)
 (require 'prelude-js)
 (require 'prelude-key-chord)
-(require 'prelude-lisp)
 (require 'prelude-org)
-(require 'prelude-perl)
-(require 'prelude-python)
-(require 'prelude-ruby)
 (require 'prelude-shell)
 
 ;; ido
@@ -28,7 +24,8 @@
   (setq mouse-drag-copy-region t))
 
 ;; whitespace
-(setq whitespace-line-column 120)
+(setq fill-column 120)
+(setq whitespace-line-column fill-column)
 
 ;; keys
 (defun backward-whitespace ()
@@ -39,6 +36,7 @@
 (global-set-key (kbd "M-<left>") 'backward-whitespace)
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
 (global-set-key (kbd "M-c") 'recompile)
+(global-set-key (kbd "C--") 'negative-argument)
 
 ;; turn off the beep
 (setq visible-bell t)
@@ -53,7 +51,11 @@
 (let ((map prelude-mode-map))
   (define-key map (kbd "s-g") 'projectile-grep)
   (define-key map (kbd "s-f") 'projectile-find-file)
-  (define-key map (kbd "s-s") 'projectile-ag))
+  (define-key map (kbd "s-s") 'projectile-ag)
+  (define-key map (kbd "C-c W") 'browse-url-at-point)
+  (define-key map (kbd "C-c w") (lambda ()
+                                  (interactive)
+                                  (eww (browse-url-url-at-point)))))
 
 ;; dir-locals based project config without the .dir-locals.el file
 (dir-locals-set-class-variables
@@ -66,7 +68,8 @@
     (cond
      ((string= project "govmomi")
       (progn
-        (setq-local compilation-read-command nil)
+        (if (and buffer-file-name (equal "go" (file-name-extension buffer-file-name)))
+            (setq-local compilation-read-command nil))
         (setq-local projectile-project-compilation-cmd "go install -v ./govc")
         (setq-local go-oracle-scope "github.com/vmware/govmomi/govc")))
      ((string= project "machine")
@@ -95,6 +98,9 @@
 (eval-after-load 'go-mode
   '(progn
      (go-projectile-install-tools)))
+
+;; elisp
+(define-key emacs-lisp-mode-map (kbd "C-c C-r") 'eval-region)
 
 ;; flycheck
 (prelude-require-packages '(flycheck-cask flycheck-color-mode-line))
@@ -148,12 +154,13 @@
 ;; saveplace/recentf
 ;; ignore tramp files and anything in .git
 (setq save-place-ignore-files-regexp "\\(?:^/[a-z]+:\\|/.git/\\)")
-(dolist (e '("/_vendor/" "/var" "/usr/local/" "/sudo:" "/ssh:" "/vagrant:"))
+(dolist (e '("vendor/" "/_workspace/" "/var" "/usr/local/" "/sudo:" "/ssh:" "/vagrant:"))
   (add-to-list 'recentf-exclude e))
 
 ;; term
 (add-hook 'term-mode-hook
           (lambda ()
+            (compilation-shell-minor-mode)
             (define-key term-raw-map (kbd "C-'") 'term-line-mode)
             (define-key term-mode-map (kbd "C-'") 'term-char-mode)
             (define-key term-raw-map (kbd "C-y") 'term-paste)))
