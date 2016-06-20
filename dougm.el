@@ -153,7 +153,7 @@
               sh-indentation 2)
 
 ;; docker
-(prelude-require-packages '(docker))
+(prelude-require-package 'docker)
 (docker-global-mode)
 
 (defadvice docker-containers (before docker-containers-url-at-point)
@@ -164,6 +164,10 @@
       (setenv "DOCKER_HOST" url))))
 
 (ad-activate 'docker-containers)
+
+;; govc
+(prelude-require-package 'govc)
+(govc-global-mode)
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
