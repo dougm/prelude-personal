@@ -1,3 +1,4 @@
-(require 'prelude-packages)
-(prelude-require-package 'solarized-theme)
-(setq prelude-theme 'solarized-dark)
+(when window-system
+  (require 'prelude-packages)
+  (prelude-require-package 'solarized-theme)
+  (setq prelude-theme 'solarized-dark))

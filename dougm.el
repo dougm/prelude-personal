@@ -24,8 +24,11 @@
   (setq mouse-drag-copy-region t))
 
 ;; whitespace
-(setq fill-column 120)
-(setq whitespace-line-column fill-column)
+(setq whitespace-line-column 120)
+(defun dougm-auto-fill-mode ()
+  (setq fill-column whitespace-line-column)
+  (auto-fill-mode))
+(add-hook 'text-mode-hook 'dougm-auto-fill-mode)
 
 ;; keys
 (defun backward-whitespace ()
@@ -64,20 +67,27 @@
 
 (defun dougm-projectile-project-locals ()
   (let ((project (projectile-project-name)))
-    (setq-local prelude-term-buffer-name project)
+    (setq crux-term-buffer-name project)
     (cond
      ((string= project "govmomi")
       (progn
         (if (and buffer-file-name (equal "go" (file-name-extension buffer-file-name)))
             (setq-local compilation-read-command nil))
         (setq-local projectile-project-compilation-cmd "go install -v ./govc")
-        (setq-local go-oracle-scope "github.com/vmware/govmomi/govc")))
+        (setq-local go-guru-scope "github.com/vmware/govmomi/govc")
+        (setq-default sh-basic-offset 2
+                      sh-indentation 2)))
+     ((string= "vic" project)
+      (progn
+        (setq-local projectile-project-compilation-cmd "make -k")
+        (setq-default sh-basic-offset 4
+                      sh-indentation 4)))
      ((string= project "machine")
       (progn
         (setq-local compilation-read-command nil)
         (setq-local projectile-project-compilation-cmd "make clean build")
         (setq-local projectile-project-test-cmd "make GOLINT=$(which golint) test")
-        (setq-local go-oracle-scope "github.com/docker/machine/cmd")))
+        (setq-local go-guru-scope "github.com/docker/machine/cmd")))
      ((string-prefix-p "bonneville-" project)
       (progn
         (setq-default sh-basic-offset 4
@@ -93,11 +103,24 @@
   (add-to-list 'clean-buffer-list-kill-regexps re))
 
 ;; go
+(defun go-test-current-package-coverage ()
+  (interactive)
+  (shell-command (concat "go test . -coverprofile=" go--coverage-current-file-name) (messages-buffer))
+  (if current-prefix-arg
+      (shell-command (concat "go tool cover -html=" go--coverage-current-file-name))
+    (go-coverage)))
+
 (setq go-projectile-tools-path (expand-file-name "~/gotools")
-      go-test-verbose t)
+      go-test-verbose t
+      go--coverage-current-file-name "cover.out")
+
+(add-to-list 'go-projectile-tools '(gvt . "github.com/FiloSottile/gvt"))
+
 (eval-after-load 'go-mode
   '(progn
-     (go-projectile-install-tools)))
+     (go-projectile-install-tools)
+     (let ((map go-mode-map))
+       (define-key map (kbd "C-c c") 'go-test-current-package-coverage))))
 
 ;; elisp
 (define-key emacs-lisp-mode-map (kbd "C-c C-r") 'eval-region)
@@ -109,13 +132,15 @@
   '(progn
      (delq 'mode-enabled flycheck-check-syntax-automatically)
      (add-hook 'flycheck-mode-hook 'flycheck-cask-setup)
-     (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)))
+     (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
+     (setq flycheck-go-vet-shadow t)))
 
 ;; git
 (prelude-require-packages '(magit-gerrit magit-gh-pulls git-link))
 (eval-after-load 'magit
   '(progn
      (setq magit-revision-show-gravatars nil)
+     (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
      (require 'magit-gerrit)))
 
 ;; js/json
@@ -160,7 +185,7 @@
 ;; term
 (add-hook 'term-mode-hook
           (lambda ()
-            (compilation-shell-minor-mode)
+            (prelude-off)
             (define-key term-raw-map (kbd "C-'") 'term-line-mode)
             (define-key term-mode-map (kbd "C-'") 'term-char-mode)
             (define-key term-raw-map (kbd "C-y") 'term-paste)))
@@ -189,6 +214,8 @@
 (setq ping-program-options '("-c" "10"))
 
 (setq diff-switches "-u")
+
+(setq sort-fold-case t)
 
 ;; I like clocks
 (display-time-mode 1)
