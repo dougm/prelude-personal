@@ -20,7 +20,6 @@
   (set-face-font 'default "Monaco-13")
   (setq mac-command-modifier 'meta)
   (setq mac-option-modifier 'super)
-  (scroll-bar-mode -1)
   (setq mouse-drag-copy-region t))
 
 ;; whitespace
