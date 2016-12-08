@@ -34,9 +34,11 @@
   (interactive)
   (forward-whitespace -1))
 
+(global-set-key (kbd "M-*") 'pop-tag-mark)
 (global-set-key (kbd "M-<right>") 'forward-whitespace)
 (global-set-key (kbd "M-<left>") 'backward-whitespace)
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
+(global-set-key (kbd "C-x e") 'compile)
 (global-set-key (kbd "M-c") 'recompile)
 (global-set-key (kbd "C--") 'negative-argument)
 
@@ -49,7 +51,8 @@
 (setq grep-highlight-matches 'auto)
 (setq projectile-use-git-grep t)
 (setq projectile-sort-order 'recentf)
-(setq projectile-switch-project-action 'projectile-vc)
+(setq projectile-switch-project-action 'dougm-projectile-switch-project-hook)
+
 (let ((map prelude-mode-map))
   (define-key map (kbd "s-g") 'projectile-grep)
   (define-key map (kbd "s-f") 'projectile-find-file)
@@ -66,36 +69,27 @@
 
 (defun dougm-projectile-project-locals ()
   (let ((project (projectile-project-name)))
-    (setq crux-term-buffer-name project)
     (cond
      ((string= project "govmomi")
       (progn
-        (if (and buffer-file-name (equal "go" (file-name-extension buffer-file-name)))
-            (setq-local compilation-read-command nil))
         (setq-local projectile-project-compilation-cmd "go install -v ./govc")
         (setq-local go-guru-scope "github.com/vmware/govmomi/govc")
-        (setq-default sh-basic-offset 2
-                      sh-indentation 2)))
-     ((string= "vic" project)
+        (setq-default sh-basic-offset 2 sh-indentation 2)))
+     ((string= project "vic")
       (progn
-        (setq-local projectile-project-compilation-cmd "make -k")
-        (setq-default sh-basic-offset 4
-                      sh-indentation 4)))
+        (setq projectile-project-type 'go)
+        (setq-local projectile-project-compilation-cmd "go install -v ./cmd/vcsim")
+        (setq-local robot-program (concat (projectile-project-root) "tests/local-integration-test.sh"))
+        (setq-default sh-basic-offset 4 sh-indentation 4)))
      ((string= project "machine")
       (progn
-        (setq-local compilation-read-command nil)
         (setq-local projectile-project-compilation-cmd "make clean build")
         (setq-local projectile-project-test-cmd "make GOLINT=$(which golint) test")
-        (setq-local go-guru-scope "github.com/docker/machine/cmd")))
-     ((string-prefix-p "bonneville-" project)
-      (progn
-        (setq-default sh-basic-offset 4
-                      sh-indentation 4))))))
+        (setq-local go-guru-scope "github.com/docker/machine/cmd"))))))
 
 (defun dougm-projectile-switch-project-hook ()
-  (dir-locals-set-directory-class (projectile-project-root) 'project-locals))
-
-(add-hook 'projectile-before-switch-project-hook 'dougm-projectile-switch-project-hook)
+  (dir-locals-set-directory-class (projectile-project-root) 'project-locals)
+  (projectile-vc))
 
 ;; midnight.el
 (dolist (re '("^\\*ag search " "^\\*godoc "))
@@ -114,10 +108,14 @@
       go--coverage-current-file-name "cover.out")
 
 (add-to-list 'go-projectile-tools '(gvt . "github.com/FiloSottile/gvt"))
+(add-to-list 'go-projectile-tools '(github-release . "github.com/aktau/github-release"))
 
 (eval-after-load 'go-mode
   '(progn
+     (setenv "GOPATH" (getenv "HOME"))
      (go-projectile-install-tools)
+     (remove-hook 'projectile-after-switch-project-hook 'go-projectile-switch-project)
+
      (let ((map go-mode-map))
        (define-key map (kbd "C-c c") 'go-test-current-package-coverage))))
 
@@ -182,7 +180,8 @@
 ;; saveplace/recentf
 ;; ignore tramp files and anything in .git
 (setq save-place-ignore-files-regexp "\\(?:^/[a-z]+:\\|/.git/\\)")
-(dolist (e '("vendor/" "/_workspace/" "/var" "/usr/local/" "/sudo:" "/ssh:" "/vagrant:"))
+(dolist (e '("vendor/" "/_workspace/" "/var" "/usr/local/" "/sudo:" "/ssh:" "/vagrant:" "/tmp/"
+             "\\.zip'" "\\.gz'"))
   (add-to-list 'recentf-exclude e))
 
 ;; term
@@ -210,7 +209,8 @@
 
 ;; misc
 (prelude-require-packages '(list-environment
-                            powershell))
+                            powershell
+                            strace-mode))
 
 (setq dired-listing-switches "-laX")
 
