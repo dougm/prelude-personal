@@ -9,6 +9,8 @@
 (require 'prelude-org)
 (require 'prelude-shell)
 
+(setenv "TMPDIR" (expand-file-name "~/tmp"))
+
 ;; ido
 (prelude-require-package 'ido-vertical-mode)
 (ido-vertical-mode t)
@@ -23,7 +25,7 @@
   (setq mouse-drag-copy-region t))
 
 ;; whitespace
-(setq whitespace-line-column 120)
+(setq whitespace-line-column 160)
 (defun dougm-auto-fill-mode ()
   (setq fill-column whitespace-line-column)
   (auto-fill-mode))
@@ -34,11 +36,19 @@
   (interactive)
   (forward-whitespace -1))
 
+(defun compile-defaults ()
+  (interactive)
+  (let ((file buffer-file-name))
+    (setq compile-command (or (if file
+                                  (or (--first (string-prefix-p file it) compile-history) file))
+                              (car compile-history)))
+    (call-interactively 'compile)))
+
 (global-set-key (kbd "M-*") 'pop-tag-mark)
 (global-set-key (kbd "M-<right>") 'forward-whitespace)
 (global-set-key (kbd "M-<left>") 'backward-whitespace)
 (global-set-key (kbd "C-x C-o") 'ff-find-other-file)
-(global-set-key (kbd "C-x e") 'compile)
+(global-set-key (kbd "C-c m") 'compile-defaults)
 (global-set-key (kbd "M-c") 'recompile)
 (global-set-key (kbd "C--") 'negative-argument)
 
@@ -54,6 +64,7 @@
 (setq projectile-switch-project-action 'dougm-projectile-switch-project-hook)
 
 (let ((map prelude-mode-map))
+  (define-key map (kbd "C-a") nil)
   (define-key map (kbd "s-g") 'projectile-grep)
   (define-key map (kbd "s-f") 'projectile-find-file)
   (define-key map (kbd "s-s") 'projectile-ag)
@@ -72,9 +83,13 @@
     (cond
      ((string= project "govmomi")
       (progn
-        (setq-local projectile-project-compilation-cmd "go install -v ./govc")
+        (setq-local projectile-project-compilation-cmd "make install")
         (setq-local go-guru-scope "github.com/vmware/govmomi/govc")
         (setq-default sh-basic-offset 2 sh-indentation 2)))
+     ((string= project "kubernetes")
+      (progn
+        (setq projectile-project-type 'go)
+        (setq-local projectile-project-compilation-cmd "make TMPDIR=$HOME/tmp/k8s test")))
      ((string= project "vic")
       (progn
         (setq projectile-project-type 'go)
@@ -137,6 +152,7 @@
 (eval-after-load 'magit
   '(progn
      (setq magit-revision-show-gravatars nil)
+     (setq magit-diff-refine-hunk t)
      (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
      (require 'magit-gerrit)))
 
@@ -148,6 +164,16 @@
 ;; sh
 (setq-default sh-basic-offset 2
               sh-indentation 2)
+
+(defun bash-command-on-region ()
+  (interactive)
+  (if (eq (shell-command-on-region (region-beginning) (region-end) "bash") 0)
+      (with-current-buffer "*Shell Command Output*"
+        (if (and (> (buffer-size) 0) (< (buffer-size) 512))
+            (kill-new (car (split-string (buffer-string) "\n" t)))))))
+
+(let ((map sh-mode-map))
+  (define-key map (kbd "C-c C-b") 'bash-command-on-region))
 
 ;; docker
 (prelude-require-package 'docker)
@@ -165,6 +191,35 @@
 ;; govc
 (prelude-require-package 'govc)
 (govc-global-mode)
+(setenv "GOVC_DEBUG_PATH_RUN" "last")
+(setenv "GOVC_DEBUG" "true")
+(setenv "GOVC_TLS_KNOWN_HOSTS" (expand-file-name "~/.govmomi/known_hosts"))
+(setenv "GOVC_INSECURE" "true")
+(setenv "GOVMOMI_INSECURE" "true")
+(setenv "GOVC_GUEST_LOGIN" "vagrant:vagrant")
+;; (setenv "HTTPS_PROXY" "socks5://localhost:12345")
+
+(defun govc-debug ()
+  (interactive)
+  (shell-command "$GOPATH/src/github.com/vmware/govmomi/scripts/debug-xmlformat.sh" "*govc*")
+  (with-current-buffer "*govc*"
+    (xml-mode)))
+
+(defun dougm-setenv (fn &rest args)
+  (apply fn args)
+  (let ((key (car args))
+        (val (nth 1 args)))
+    (cond
+     ((string= key "GOVC_URL")
+      (let* ((id (tabulated-list-get-id))
+             (ip (if (and id (s-ends-with? "-vch" id t))
+                     (govc-table-column-value "IP address"))))
+        (if ip (setenv "DOCKER_HOST" (format "%s:2375" ip))))
+      (if (or (null val) (and val (or (s-contains? "localhost" val) (s-contains? "dougm" val))))
+          (dolist (k '("GOVC_TEST_URL" "GOVMOMI_URL"))
+            (funcall fn k val)))))))
+
+(advice-add 'setenv :around #'dougm-setenv)
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
@@ -194,6 +249,7 @@
 
 ;; bats
 (prelude-require-package 'bats-mode)
+(setq bats-check-program (expand-file-name "~/bats-mode/bin/batscheck"))
 
 (add-hook 'bats-mode-hook
           (lambda ()
@@ -210,15 +266,28 @@
 ;; misc
 (prelude-require-packages '(list-environment
                             powershell
-                            strace-mode))
+                            strace-mode
+                            string-inflection))
 
 (setq dired-listing-switches "-laX")
 
 (setq ping-program-options '("-c" "10"))
 
+(setq netstat-program-options '("-a" "-n" "-t"))
+
 (setq diff-switches "-u")
 
 (setq sort-fold-case t)
+
+(setq auto-revert-verbose nil)
+
+(setq rng-nxml-auto-validate-flag nil)
+
+(setq dired-auto-revert-buffer t)
+
+(setq markdown-fontify-code-blocks-natively t)
+
+(setq compilation-scroll-output t)
 
 ;; I like clocks
 (display-time-mode 1)
