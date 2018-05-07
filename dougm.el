@@ -89,7 +89,8 @@
      ((string= project "kubernetes")
       (progn
         (setq projectile-project-type 'go)
-        (setq-local projectile-project-compilation-cmd "make TMPDIR=$HOME/tmp/k8s test")))
+        (setq-local projectile-project-test-cmd "make TMPDIR=$HOME/tmp/k8s test")
+        (setq-local projectile-project-compilation-cmd "make WHAT=\"cmd/kubectl cmd/hyperkube\"")))
      ((string= project "vic")
       (progn
         (setq projectile-project-type 'go)
@@ -262,10 +263,12 @@
 (add-to-list 'auto-mode-alist '("\\.markdown$" . gfm-mode))
 (add-to-list 'auto-mode-alist '("\\.vmx$" . conf-mode))
 (add-to-list 'auto-mode-alist '("\\.sls$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.kubeconfig$" . yaml-mode))
 
 ;; misc
 (prelude-require-packages '(list-environment
                             powershell
+                            kubernetes
                             strace-mode
                             string-inflection))
 
@@ -273,7 +276,7 @@
 
 (setq ping-program-options '("-c" "10"))
 
-(setq netstat-program-options '("-a" "-n" "-t"))
+(setq netstat-program-options '("-a" "-n" "-t" "-p"))
 
 (setq diff-switches "-u")
 
