@@ -10,6 +10,8 @@
 (require 'prelude-shell)
 
 (setenv "TMPDIR" (expand-file-name "~/tmp"))
+(setenv "LOG_DIR" (concat (getenv "TMPDIR") "/logs"))
+(setenv "GITHUB_USER" (getenv "USER"))
 
 ;; ido
 (prelude-require-package 'ido-vertical-mode)
@@ -149,12 +151,11 @@
      (setq flycheck-go-vet-shadow t)))
 
 ;; git
-(prelude-require-packages '(magit-gerrit magit-gh-pulls git-link))
+(prelude-require-packages '(magit-gerrit git-link))
 (eval-after-load 'magit
   '(progn
      (setq magit-revision-show-gravatars nil)
      (setq magit-diff-refine-hunk t)
-     (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
      (require 'magit-gerrit)))
 
 ;; js/json
@@ -178,7 +179,6 @@
 
 ;; docker
 (prelude-require-package 'docker)
-(docker-global-mode)
 
 (defadvice docker-containers (before docker-containers-url-at-point)
   "If `url-get-url-at-point' returns a tcp:// url, setenv DOCKER_HOST url."
@@ -205,6 +205,17 @@
   (shell-command "$GOPATH/src/github.com/vmware/govmomi/scripts/debug-xmlformat.sh" "*govc*")
   (with-current-buffer "*govc*"
     (xml-mode)))
+
+(defun govc-sim()
+  (interactive)
+  (require 'filenotify)
+  (unless (get-buffer "*vcsim*")
+    (compile "vcsim")
+    (with-current-buffer compilation-last-buffer (rename-buffer "*vcsim*"))
+    (file-notify-add-watch (executable-find "vcsim") '(change)
+                           (lambda (event)
+                             (with-current-buffer "*vcsim*" (recompile))
+                             (message "vcsim: %S" event)))))
 
 (defun dougm-setenv (fn &rest args)
   (apply fn args)
