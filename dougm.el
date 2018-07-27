@@ -58,7 +58,6 @@
 (setq visible-bell t)
 
 ;; projectile
-(setq projectile-keymap-prefix (kbd "C-c p"))
 (prelude-require-packages '(ag))
 (setq ag-highlight-search t)
 (setq grep-highlight-matches 'auto)
