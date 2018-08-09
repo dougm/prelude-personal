@@ -1,5 +1,3 @@
-(setq projectile-keymap-prefix (kbd "C-c p"))
-
 (when window-system
   (require 'prelude-packages)
   (scroll-bar-mode -1)
