@@ -151,12 +151,11 @@
      (setq flycheck-go-vet-shadow t)))
 
 ;; git
-(prelude-require-packages '(magit-gerrit git-link))
+(prelude-require-packages '(git-link))
 (eval-after-load 'magit
   '(progn
      (setq magit-revision-show-gravatars nil)
-     (setq magit-diff-refine-hunk t)
-     (require 'magit-gerrit)))
+     (setq magit-diff-refine-hunk t)))
 
 ;; js/json
 (setq-default js-indent-level 2
