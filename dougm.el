@@ -125,7 +125,6 @@
       go-test-verbose t
       go--coverage-current-file-name "cover.out")
 
-(add-to-list 'go-projectile-tools '(gvt . "github.com/FiloSottile/gvt"))
 (add-to-list 'go-projectile-tools '(github-release . "github.com/aktau/github-release"))
 
 (eval-after-load 'go-mode
@@ -147,8 +146,7 @@
   '(progn
      (delq 'mode-enabled flycheck-check-syntax-automatically)
      (add-hook 'flycheck-mode-hook 'flycheck-cask-setup)
-     (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
-     (setq flycheck-go-vet-shadow t)))
+     (add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)))
 
 ;; git
 (prelude-require-packages '(git-link))
