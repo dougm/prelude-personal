@@ -92,18 +92,7 @@
       (progn
         (setq projectile-project-type 'go)
         (setq-local projectile-project-test-cmd "make TMPDIR=$HOME/tmp/k8s test")
-        (setq-local projectile-project-compilation-cmd "make WHAT=\"cmd/kubectl cmd/hyperkube\"")))
-     ((string= project "vic")
-      (progn
-        (setq projectile-project-type 'go)
-        (setq-local projectile-project-compilation-cmd "go install -v ./cmd/vcsim")
-        (setq-local robot-program (concat (projectile-project-root) "tests/local-integration-test.sh"))
-        (setq-default sh-basic-offset 4 sh-indentation 4)))
-     ((string= project "machine")
-      (progn
-        (setq-local projectile-project-compilation-cmd "make clean build")
-        (setq-local projectile-project-test-cmd "make GOLINT=$(which golint) test")
-        (setq-local go-guru-scope "github.com/docker/machine/cmd"))))))
+        (setq-local projectile-project-compilation-cmd "make WHAT=\"cmd/kubectl cmd/kubelet\""))))))
 
 (defun dougm-projectile-switch-project-hook ()
   (dir-locals-set-directory-class (projectile-project-root) 'project-locals)
@@ -213,22 +202,6 @@
                            (lambda (event)
                              (with-current-buffer "*vcsim*" (recompile))
                              (message "vcsim: %S" event)))))
-
-(defun dougm-setenv (fn &rest args)
-  (apply fn args)
-  (let ((key (car args))
-        (val (nth 1 args)))
-    (cond
-     ((string= key "GOVC_URL")
-      (let* ((id (tabulated-list-get-id))
-             (ip (if (and id (s-ends-with? "-vch" id t))
-                     (govc-table-column-value "IP address"))))
-        (if ip (setenv "DOCKER_HOST" (format "%s:2375" ip))))
-      (if (or (null val) (and val (or (s-contains? "localhost" val) (s-contains? "dougm" val))))
-          (dolist (k '("GOVC_TEST_URL" "GOVMOMI_URL"))
-            (funcall fn k val)))))))
-
-(advice-add 'setenv :around #'dougm-setenv)
 
 ;; vagrant
 (prelude-require-packages '(vagrant vagrant-tramp))
