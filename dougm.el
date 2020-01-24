@@ -230,7 +230,7 @@
 
 ;; bats
 (prelude-require-package 'bats-mode)
-(setq bats-check-program (expand-file-name "~/bats-mode/bin/batscheck"))
+(setq bats-check-program (executable-find "shellcheck"))
 
 (add-hook 'bats-mode-hook
           (lambda ()
