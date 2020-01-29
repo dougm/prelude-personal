@@ -8,6 +8,7 @@
 (require 'prelude-key-chord)
 (require 'prelude-org)
 (require 'prelude-shell)
+(require 'prelude-latex)
 
 (setenv "TMPDIR" (expand-file-name "~/tmp"))
 (setenv "LOG_DIR" (concat (getenv "TMPDIR") "/logs"))
