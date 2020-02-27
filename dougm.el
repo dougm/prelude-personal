@@ -161,7 +161,13 @@
         (if (and (> (buffer-size) 0) (< (buffer-size) 512))
             (kill-new (car (split-string (buffer-string) "\n" t)))))))
 
+(defun term-command-on-region ()
+  (interactive)
+  (display-buffer "*ansi-term*")
+  (comint-send-string "*ansi-term*" (concat (buffer-substring (mark) (point)) "\n")))
+
 (let ((map sh-mode-map))
+  (define-key map (kbd "C-c x") 'term-command-on-region)
   (define-key map (kbd "C-c C-b") 'bash-command-on-region))
 
 ;; docker
@@ -236,6 +242,7 @@
 (add-hook 'bats-mode-hook
           (lambda ()
             (let ((map bats-mode-map))
+              (define-key map (kbd "C-c x") 'term-command-on-region)
               (define-key map (kbd "C-c a") 'bats-run-all)
               (define-key map (kbd "C-c m") 'bats-run-current-file)
               (define-key map (kbd "C-c .") 'bats-run-current-test))))
