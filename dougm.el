@@ -3,7 +3,7 @@
 (require 'prelude-company)
 (require 'prelude-c)
 (require 'prelude-emacs-lisp)
-(require 'prelude-go)
+(require 'prelude-lsp)
 (require 'prelude-js)
 (require 'prelude-key-chord)
 (require 'prelude-org)
@@ -13,6 +13,7 @@
 (setenv "TMPDIR" (expand-file-name "~/tmp"))
 (setenv "LOG_DIR" (concat (getenv "TMPDIR") "/logs"))
 (setenv "GITHUB_USER" (getenv "USER"))
+(setenv "GOPATH" (getenv "HOME"))
 
 ;; ido
 (prelude-require-package 'ido-vertical-mode)
@@ -65,6 +66,7 @@
 (setq projectile-use-git-grep t)
 (setq projectile-sort-order 'recentf)
 (setq projectile-switch-project-action 'dougm-projectile-switch-project-hook)
+(setq projectile-ignored-project-function nil)
 
 (let ((map prelude-mode-map))
   (define-key map (kbd "C-a") nil)
@@ -87,7 +89,6 @@
      ((string= project "govmomi")
       (progn
         (setq-local projectile-project-compilation-cmd "make install")
-        (setq-local go-guru-scope "github.com/vmware/govmomi/govc")
         (setq-default sh-basic-offset 2 sh-indentation 2)))
      ((string= project "kubernetes")
       (progn
@@ -103,7 +104,29 @@
 (dolist (re '("^\\*ag search " "^\\*godoc "))
   (add-to-list 'clean-buffer-list-kill-regexps re))
 
+;; yasnippet
+(prelude-require-packages '(yasnippet yasnippet-snippets))
+
+;; lsp
+(setq lsp-keymap-prefix "C-c l"
+      lsp-auto-guess-root t
+      lsp-flycheck-live-reporting nil
+      lsp-keep-workspace-alive nil
+      lsp-prefer-capf t
+      lsp-signature-auto-activate nil
+      lsp-enable-file-watchers nil
+      lsp-gopls-use-placeholders t
+      lsp-enable-folding nil
+      lsp-enable-symbol-highlighting nil
+      lsp-ui-doc-enable nil
+      lsp-ui-peek-enable t
+      lsp-ui-sideline-enable t
+      lsp-ui-imenu-enable t
+      lsp-ui-flycheck-enable nil)
+
 ;; go
+(prelude-require-packages '(company-lsp gotest))
+
 (defun go-test-current-package-coverage ()
   (interactive)
   (shell-command (concat "go test . -coverprofile=" go--coverage-current-file-name) (messages-buffer))
@@ -115,15 +138,24 @@
       go-test-verbose t
       go--coverage-current-file-name "cover.out")
 
-(add-to-list 'go-projectile-tools '(github-release . "github.com/aktau/github-release"))
+(defun dougm-lsp-go-hook ()
+  (whitespace-toggle-options '(tabs))
+  (set (make-local-variable 'company-backends) '(company-lsp))
+  (lsp-deferred)
+  (yasnippet-minor-mode)
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+(add-hook 'go-mode-hook #'dougm-lsp-go-hook)
 
 (eval-after-load 'go-mode
   '(progn
-     (setenv "GOPATH" (getenv "HOME"))
-     (go-projectile-install-tools)
-     (remove-hook 'projectile-after-switch-project-hook 'go-projectile-switch-project)
-
      (let ((map go-mode-map))
+       (define-key map (kbd "C-c a") 'go-test-current-project) ;; current package, really
+       (define-key map (kbd "C-c m") 'go-test-current-file)
+       (define-key map (kbd "C-c .") 'go-test-current-test)
+       (define-key map (kbd "C-c b") 'go-run)
+       (define-key map (kbd "M-.") 'lsp-find-definition)
        (define-key map (kbd "C-c c") 'go-test-current-package-coverage))))
 
 ;; elisp
