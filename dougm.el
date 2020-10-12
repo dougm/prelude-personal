@@ -3,7 +3,7 @@
 (require 'prelude-company)
 (require 'prelude-c)
 (require 'prelude-emacs-lisp)
-(require 'prelude-go)
+(require 'prelude-gopls) ;; https://gist.github.com/lasse-aagren/b7a6a2b2e10d0b9e5dbd036a8247650b
 (require 'prelude-js)
 (require 'prelude-key-chord)
 (require 'prelude-org)
@@ -22,7 +22,7 @@
 ;; mac/gui
 (when (memq window-system '(mac ns))
   (setenv "VAGRANT_DEFAULT_PROVIDER" "vmware_fusion")
-  (set-face-font 'default "Monaco-13")
+  (set-face-font 'default "Monaco-15")
   (setq mac-command-modifier 'meta)
   (setq mac-option-modifier 'super)
   (setq mouse-drag-copy-region t))
@@ -57,6 +57,7 @@
 
 ;; turn off the beep
 (setq visible-bell t)
+(global-nlinum-mode -1)
 
 ;; projectile
 (prelude-require-packages '(ag))
@@ -119,7 +120,6 @@
 
 (eval-after-load 'go-mode
   '(progn
-     (setenv "GOPATH" (getenv "HOME"))
      (go-projectile-install-tools)
      (remove-hook 'projectile-after-switch-project-hook 'go-projectile-switch-project)
 
@@ -195,7 +195,7 @@
 
 (defun govc-debug ()
   (interactive)
-  (shell-command "$GOPATH/src/github.com/vmware/govmomi/scripts/debug-xmlformat.sh" "*govc*")
+  (shell-command "$(go env GOPATH)/src/github.com/vmware/govmomi/scripts/debug-xmlformat.sh" "*govc*")
   (with-current-buffer "*govc*"
     (xml-mode)))
 
