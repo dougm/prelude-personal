@@ -1,3 +1,7 @@
+(setq go-projectile-tools
+      '((golint    . "golang.org/x/lint/golint")
+        (errcheck  . "github.com/kisielk/errcheck")
+        (goimports . "golang.org/x/tools/cmd/goimports")))
 ;; load prelude modules
 (require 'prelude-ido)
 (require 'prelude-company)
@@ -9,6 +13,7 @@
 (require 'prelude-org)
 (require 'prelude-shell)
 (require 'prelude-latex)
+(require 'prelude-rust)
 
 (setenv "TMPDIR" (expand-file-name "~/tmp"))
 (setenv "LOG_DIR" (concat (getenv "TMPDIR") "/logs"))
@@ -22,7 +27,7 @@
 ;; mac/gui
 (when (memq window-system '(mac ns))
   (setenv "VAGRANT_DEFAULT_PROVIDER" "vmware_fusion")
-  (set-face-font 'default "Monaco-15")
+  (set-face-font 'default "Monaco-16")
   (setq mac-command-modifier 'meta)
   (setq mac-option-modifier 'super)
   (setq mouse-drag-copy-region t))
@@ -87,8 +92,8 @@
     (cond
      ((string= project "govmomi")
       (progn
+        (setq-local gofmt-args "-local github.com/vmware/govmomi")
         (setq-local projectile-project-compilation-cmd "make install")
-        (setq-local go-guru-scope "github.com/vmware/govmomi/govc")
         (setq-default sh-basic-offset 2 sh-indentation 2)))
      ((string= project "kubernetes")
       (progn
@@ -104,6 +109,9 @@
 (dolist (re '("^\\*ag search " "^\\*godoc "))
   (add-to-list 'clean-buffer-list-kill-regexps re))
 
+(let ((map lsp-mode-map))
+  (define-key map (kbd "C-?") 'lsp-ui-peek-find-references))
+
 ;; go
 (defun go-test-current-package-coverage ()
   (interactive)
@@ -118,10 +126,13 @@
 
 (add-to-list 'go-projectile-tools '(github-release . "github.com/aktau/github-release"))
 
+(eval-after-load 'flycheck
+  '(add-hook 'flycheck-mode-hook #'flycheck-golangci-lint-setup))
+
 (eval-after-load 'go-mode
   '(progn
-     (go-projectile-install-tools)
-     (remove-hook 'projectile-after-switch-project-hook 'go-projectile-switch-project)
+     ;;(go-projectile-install-tools)
+     ;;(remove-hook 'projectile-after-switch-project-hook 'go-projectile-switch-project)
 
      (let ((map go-mode-map))
        (define-key map (kbd "C-c c") 'go-test-current-package-coverage))))
@@ -130,7 +141,7 @@
 (define-key emacs-lisp-mode-map (kbd "C-c C-r") 'eval-region)
 
 ;; flycheck
-(prelude-require-packages '(flycheck-cask flycheck-color-mode-line))
+(prelude-require-packages '(flycheck-golangci-lint flycheck-cask flycheck-color-mode-line))
 (setq flycheck-emacs-lisp-load-path 'inherit)
 (eval-after-load 'flycheck
   '(progn
@@ -184,6 +195,7 @@
 
 ;; govc
 (prelude-require-package 'govc)
+(prelude-require-package 'magit-popup)
 (govc-global-mode)
 (setenv "GOVC_DEBUG_PATH_RUN" "last")
 (setenv "GOVC_DEBUG" "true")
@@ -195,7 +207,7 @@
 
 (defun govc-debug ()
   (interactive)
-  (shell-command "$(go env GOPATH)/src/github.com/vmware/govmomi/scripts/debug-xmlformat.sh" "*govc*")
+  (shell-command "$(go env GOPATH)/src/github.com/vmware/govmomi/scripts/debug-format.sh" "*govc*")
   (with-current-buffer "*govc*"
     (xml-mode)))
 
